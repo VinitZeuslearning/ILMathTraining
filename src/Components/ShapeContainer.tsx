@@ -1,18 +1,22 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState, type RefObject } from 'react';
 import styled from 'styled-components';
+import shapesUrl from '../shapesData';
+import type { ShapeName } from '../shapesData';
 import DragableElms from './DragableElms';
-import type { CanvasBoardHandle } from './CanvaBoard';
 
 const Container = styled.div`
   grid-gap: 16px;
   height: 100%;
   width: 100%;
+  overflow: hidden;
+  padding: 20px;
   position: relative;
 
-  .imgContinaer {
+  .imgContainer {
     display: flex;
     align-items: center;
   }
+
   .svgImgs {
     object-fit: contain;
     cursor: pointer;
@@ -20,121 +24,112 @@ const Container = styled.div`
 `;
 
 const ShapeGrid = styled.div`
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  height: 100%;
+  display: grid;
+  grid-template-columns: repeat(2, auto);
+  grid-auto-rows: 100px;
   align-items: center;
-  justify-content: flex-end;
-  gap: 24px;
+  padding-top: 170px;
 `;
 
 interface Props {
-  canvaRef: React.RefObject<CanvasBoardHandle | null>;
+  onShapeClick: (shape: { name: string; url: string; size: number }) => void;
 }
 
-interface DraggableShape {
-  id: string;
-  imageUrl: string;
-  position: { x: number; y: number };
-}
+type RefObj = {
+  [key in ShapeName]: {
+    ref: RefObject<HTMLDivElement>;
+    rect: DOMRect | null;
+  };
+};
 
-const ShapeContainer: React.FC<Props> = ({ canvaRef }) => {
-  const [draggableShapes, setDraggableShapes] = useState<DraggableShape[]>([]);
-  const [selectedShape, setSelectedShape] = useState<{ name: string; url: string } | null>(null);
+const ShapeContainer: React.FC<Props> = ({ onShapeClick }) => {
+  const refObject = useRef<RefObj>(
+    Object.fromEntries(
+      Object.keys(shapesUrl).map(name => [
+        name,
+        { ref: React.createRef<HTMLDivElement>(), rect: null }
+      ])
+    ) as RefObj
+  );
 
-  const shapeCount = useRef<Record<string, number>>({
-    square: 0,
-    rhombus: 0,
-    trapezium: 0,
-    triangle: 0,
-    hexagon: 0,
-    parallelogram: 0
-  });
+  // count state to trigger rerender
+  const [elmsCnt, setElmsCnt] = useState<number>(0);
 
-  const containerRef = useRef<HTMLDivElement>(null);
+  // stable persistent array ref to hold draggable elements data
+  const dragableElms = useRef<
+    { name: string; url: string; size: number; x: number; y: number; startDrag: boolean }[]
+  >([]);
 
-  const shapeUrl = [
-    { name: 'hexagon', url: '/pb_s5/hexagon_active.svg' },
-    { name: 'parallelogram', url: '/pb_s5/paralellogram_active.svg' },
-    { name: 'rhombus', url: '/pb_s5/rhombus-_active.svg' },
-    { name: 'square', url: '/pb_s5/square_active.svg' },
-    { name: 'trapezium', url: '/pb_s5/trapezium-_active.svg' },
-    { name: 'triangle', url: '/pb_s5/triangle-_active.svg' },
-  ];
-
-  // Event handler: single mousedown on container
   useEffect(() => {
-    const handleMouseDown = (e: MouseEvent) => {
-      const target = e.target as HTMLElement;
-
-      // If clicked on a shape image
-      const shapeName = target.getAttribute('data-shapeName');
-      if (shapeName) {
-        const shapeImg = shapeUrl.find((s) => s.name === shapeName);
-        if (shapeImg) {
-          setSelectedShape({ name: shapeName, url: shapeImg.url });
-        }
-        return;
+    Object.entries(refObject.current).forEach(([name, obj]) => {
+      if (obj.ref.current) {
+        obj.rect = obj.ref.current.getBoundingClientRect();
       }
+    });
+  }, []);
 
-      // If clicked elsewhere in container and a shape is selected
-      if (selectedShape && containerRef.current?.contains(target)) {
-        const containerRect = containerRef.current.getBoundingClientRect();
-        const posX = e.clientX - containerRect.left;
-        const posY = e.clientY - containerRect.top;
+  function mouseDownHandle(name: ShapeName, url: string, size: number) {
+    function handleMouseMove(e: MouseEvent) {
+      const rect = refObject.current[name].rect;
+      if (!rect) return;
 
-        const count = shapeCount.current[selectedShape.name]++;
-        const newId = `${selectedShape.name}-${count}`;
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
 
-        setDraggableShapes((prev) => [
-          ...prev,
-          {
-            id: newId,
-            imageUrl: selectedShape.url,
-            position: { x: posX, y: posY }
-          }
-        ]);
+      const distance = Math.hypot(e.clientX - centerX, e.clientY - centerY);
+      const maxDist = Math.max(rect.width, rect.height) / 2;
 
-        setSelectedShape(null);
+      if (distance > maxDist) {
+        dragableElms.current.push({
+          name,
+          url,
+          size,
+          x: e.clientX,
+          y: e.clientY,
+          startDrag: true
+        });
+
+        setElmsCnt(prev => prev + 1); // trigger rerender for 1 new item
+        window.removeEventListener('mousemove', handleMouseMove);
       }
-    };
-
-    const containerEl = containerRef.current;
-    if (containerEl) {
-      containerEl.addEventListener('mousedown', handleMouseDown);
     }
 
-    return () => {
-      if (containerEl) {
-        containerEl.removeEventListener('mousedown', handleMouseDown);
-      }
-    };
-  }, [shapeUrl, selectedShape]);
+    function handleMouseUp() {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    }
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+  }
 
   return (
-    <Container ref={containerRef}>
+    <Container>
       <ShapeGrid>
-        {shapeUrl.map((shape) => (
-          <div className="imgContinaer" key={shape.name}>
+        {Object.entries(shapesUrl).map(([name, { url, size }]) => (
+          <div className="imgContainer" key={name} ref={refObject.current[name as ShapeName].ref}>
             <img
-              src={shape.url}
+              src={url}
               className="svgImgs"
-              data-shapeName={shape.name}
-              alt={shape.name}
+              alt={name}
+              draggable={false}
+              onMouseDown={() => mouseDownHandle(name as ShapeName, url, size)}
+              onClick={() => onShapeClick({ name, url, size })}
             />
           </div>
         ))}
-
-        {draggableShapes.map((shape) => (
-          <DragableElms
-            key={shape.id}
-            imageUrl={shape.imageUrl}
-            initialPos={shape.position}
-            size={120}
-          />
-        ))}
       </ShapeGrid>
+
+      {/* Render draggable elements */}
+      {dragableElms.current.slice(0, elmsCnt).map((elm, idx) => (
+        <DragableElms
+          key={idx}
+          imageUrl={elm.url}
+          initialPos={{ x: elm.x, y: elm.y }}
+          size={elm.size}
+          startDrag={elm.startDrag}
+        />
+      ))}
     </Container>
   );
 };
