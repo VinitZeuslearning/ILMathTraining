@@ -90,7 +90,7 @@ const DragableElms: React.FC<ScrollableElmsProps> = ({ imageUrl, initialPos, siz
       const centerY = rect.top + rect.height / 2;
       const angle = Math.atan2(e.clientY - centerY, e.clientX - centerX) * (180 / Math.PI) + 90;
 
-      if (Math.abs(angle - rotationRef.current) > 2) {
+      if (Math.abs(angle - rotationRef.current) > 10) {
         rotationRef.current = angle;
         containerRef.current.style.transform = `translate(${positionRef.current.x}px, ${positionRef.current.y}px) rotate(${rotationRef.current}deg)`;
       }

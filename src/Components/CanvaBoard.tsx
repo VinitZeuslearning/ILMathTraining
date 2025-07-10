@@ -57,8 +57,8 @@ const CanvasBoard = forwardRef<CanvasBoardHandle>((props, ref) => {
     canvasRef.current?.getContext('2d')?.clearRect( 0, 0, rect?.height || 10, rect?.width || 0 )
     const draw = new Drawing(canvasRef);
     draw.drawHexagon(200, 120, 40, 30);
-    draw.drawSquare(200 , 180, 50, 0)
-    draw.drawSquare(200 , 60, 50, 0)
+    draw.drawSquare(200 , 180, 50, 0);
+    draw.drawSquare(200 , 60, 50, 0);
   })
 
   return (

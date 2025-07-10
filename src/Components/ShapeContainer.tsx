@@ -10,7 +10,7 @@ const Container = styled.div`
   width: 100%;
   overflow: hidden;
   padding: 20px;
-  position: relative;
+ 
 
   .imgContainer {
     display: flex;
@@ -32,8 +32,9 @@ const ShapeGrid = styled.div`
 `;
 
 interface Props {
-  onShapeClick: (shape: { name: string; url: string; size: number }) => void;
+  onShapeMouseDown: (shape: { name: string; url: string; size: number; rect: DOMRect | null } | null) => void;
 }
+
 
 type RefObj = {
   [key in ShapeName]: {
@@ -42,7 +43,7 @@ type RefObj = {
   };
 };
 
-const ShapeContainer: React.FC<Props> = ({ onShapeClick }) => {
+const ShapeContainer: React.FC<Props> = ({ onShapeMouseDown }) => {
   const refObject = useRef<RefObj>(
     Object.fromEntries(
       Object.keys(shapesUrl).map(name => [
@@ -68,40 +69,40 @@ const ShapeContainer: React.FC<Props> = ({ onShapeClick }) => {
     });
   }, []);
 
-  function mouseDownHandle(name: ShapeName, url: string, size: number) {
-    function handleMouseMove(e: MouseEvent) {
-      const rect = refObject.current[name].rect;
-      if (!rect) return;
+  // function mouseDownHandle(name: ShapeName, url: string, size: number) {
+  //   function handleMouseMove(e: MouseEvent) {
+  //     const rect = refObject.current[name].rect;
+  //     if (!rect) return;
 
-      const centerX = rect.left + rect.width / 2;
-      const centerY = rect.top + rect.height / 2;
+  //     const centerX = rect.left + rect.width / 2;
+  //     const centerY = rect.top + rect.height / 2;
 
-      const distance = Math.hypot(e.clientX - centerX, e.clientY - centerY);
-      const maxDist = Math.max(rect.width, rect.height) / 2;
+  //     const distance = Math.hypot(e.clientX - centerX, e.clientY - centerY);
+  //     const maxDist = Math.max(rect.width, rect.height) / 2;
 
-      if (distance > maxDist) {
-        dragableElms.current.push({
-          name,
-          url,
-          size,
-          x: e.clientX,
-          y: e.clientY,
-          startDrag: true
-        });
+  //     if (distance > maxDist) {
+  //       dragableElms.current.push({
+  //         name,
+  //         url,
+  //         size,
+  //         x: e.clientX,
+  //         y: e.clientY,
+  //         startDrag: true
+  //       });
 
-        setElmsCnt(prev => prev + 1); // trigger rerender for 1 new item
-        window.removeEventListener('mousemove', handleMouseMove);
-      }
-    }
+  //       setElmsCnt(prev => prev + 1); // trigger rerender for 1 new item
+  //       window.removeEventListener('mousemove', handleMouseMove);
+  //     }
+  //   }
 
-    function handleMouseUp() {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
-    }
+  //   function handleMouseUp() {
+  //     window.removeEventListener('mousemove', handleMouseMove);
+  //     window.removeEventListener('mouseup', handleMouseUp);
+  //   }
 
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mouseup', handleMouseUp);
-  }
+  //   window.addEventListener('mousemove', handleMouseMove);
+  //   window.addEventListener('mouseup', handleMouseUp);
+  // }
 
   return (
     <Container>
@@ -113,11 +114,15 @@ const ShapeContainer: React.FC<Props> = ({ onShapeClick }) => {
               className="svgImgs"
               alt={name}
               draggable={false}
-              onMouseDown={() => mouseDownHandle(name as ShapeName, url, size)}
-              onClick={() => onShapeClick({ name, url, size })}
+              onMouseDown={() => {
+                const shapeRef = refObject.current[name as ShapeName];
+                const rect = shapeRef.ref.current?.getBoundingClientRect() || null;
+                onShapeMouseDown({ name, url, size, rect });
+              }}
             />
           </div>
         ))}
+
       </ShapeGrid>
 
       {/* Render draggable elements */}

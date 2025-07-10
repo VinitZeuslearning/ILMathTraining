@@ -8,7 +8,7 @@ type ShapesUrl = {
 const shapesUrl: ShapesUrl = {
     hexagon: {
         url: "/pb_s5/hexagon_active.svg",
-        size: 120
+        size: 150
     },
     parallelogram: {
         url: "/pb_s5/paralellogram_active.svg",
@@ -20,7 +20,7 @@ const shapesUrl: ShapesUrl = {
     },
     square: { 
         url : "/pb_s5/square_active.svg",
-        size : 120,
+        size : 100,
     },
     triangle: {
         url: "/pb_s5/triangle-_active.svg",
