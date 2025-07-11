@@ -2,7 +2,6 @@ import React, { useEffect, useRef, useState, type RefObject } from 'react';
 import styled from 'styled-components';
 import shapesUrl from '../shapesData';
 import type { ShapeName } from '../shapesData';
-import DragableElms from './DragableElms';
 
 const Container = styled.div`
   grid-gap: 16px;
@@ -54,12 +53,12 @@ const ShapeContainer: React.FC<Props> = ({ onShapeMouseDown }) => {
   );
 
   // count state to trigger rerender
-  const [elmsCnt, setElmsCnt] = useState<number>(0);
+  // const [elmsCnt, setElmsCnt] = useState<number>(0);
 
-  // stable persistent array ref to hold draggable elements data
-  const dragableElms = useRef<
-    { name: string; url: string; size: number; x: number; y: number; startDrag: boolean }[]
-  >([]);
+  // // stable persistent array ref to hold draggable elements data
+  // const dragableElms = useRef<
+  //   { name: string; url: string; size: number; x: number; y: number; startDrag: boolean }[]
+  // >([]);
 
   useEffect(() => {
     Object.entries(refObject.current).forEach(([name, obj]) => {
@@ -126,7 +125,7 @@ const ShapeContainer: React.FC<Props> = ({ onShapeMouseDown }) => {
       </ShapeGrid>
 
       {/* Render draggable elements */}
-      {dragableElms.current.slice(0, elmsCnt).map((elm, idx) => (
+      {/* {dragableElms.current.slice(0, elmsCnt).map((elm, idx) => (
         <DragableElms
           key={idx}
           imageUrl={elm.url}
@@ -134,7 +133,7 @@ const ShapeContainer: React.FC<Props> = ({ onShapeMouseDown }) => {
           size={elm.size}
           startDrag={elm.startDrag}
         />
-      ))}
+      ))} */}
     </Container>
   );
 };
