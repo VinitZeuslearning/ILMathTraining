@@ -54,7 +54,7 @@ interface DraggableElmObj {
   rotation: number;
 }
 
-interface dumRect { left: number , right: number, top: number, bottom: number, height: number, width: number}
+interface dumRect { left: number, right: number, top: number, bottom: number, height: number, width: number }
 
 
 const GameBoard: React.FC = () => {
@@ -104,8 +104,8 @@ const GameBoard: React.FC = () => {
     const x = e.clientX - (wrapperRect?.left || 0) - (selectedShape.size / 2);
     const y = e.clientY - (wrapperRect?.top || 0) - (selectedShape.size / 2);
 
-    const currRect : dumRect = {
-      left: x ,
+    const currRect: dumRect = {
+      left: x,
       top: y,
       right: x + selectedShape.size,
       bottom: y + selectedShape.size,
@@ -113,7 +113,7 @@ const GameBoard: React.FC = () => {
       width: selectedShape.size
     }
 
-    if ( overLapCheck( overLapAreaAllowed, currRect ) ) {
+    if (overLapCheck(overLapAreaAllowed, currRect)) {
       return;
     }
 
@@ -160,80 +160,77 @@ const GameBoard: React.FC = () => {
 
   };
 
-  const overLapCheck = (  overLapRatio : number , curRect : dumRect | DOMRect ) => {
-    const check = draggableElmsRef.current.some( ( otherElm , ind ) => {
-      if ( currentDraggingIndex.current != null && currentDraggingIndex.current == ind ) {
+  // const overLapCheck = (  overLapRatio : number , curRect : dumRect | DOMRect ) => {
+  //   const check = draggableElmsRef.current.some( ( otherElm , ind ) => {
+  //     if ( currentDraggingIndex.current != null && currentDraggingIndex.current == ind ) {
+  //       return false;
+  //     }
+  //     const otherRect = {
+  //       left: otherElm.position.x,
+  //       top: otherElm.position.y,
+  //       right : otherElm.position.x + otherElm.size,
+  //       bottom: otherElm.position.y + otherElm.size
+  //     }
+
+  //     const overLapLeft = Math.max( otherRect.left, curRect.left )
+  //     const overLapRight = Math.min( otherRect.right, curRect.right )
+  //     const overLapTop = Math.max( otherRect.top, curRect.top )
+  //     const overLapBottom = Math.min( otherRect.bottom, curRect.bottom );
+
+  //     const overLapW = Math.max( overLapRight - overLapLeft, 0 );
+  //     const overLapH = Math.max( overLapBottom - overLapTop ,  0 );
+  //     const overLapArea = overLapW * overLapH;
+  //     const currArea = curRect.height * curRect.width;
+
+  //     if ( overLapArea == 0 ) {
+  //       return false;
+  //     }
+  //     return  ( (currArea / overLapArea ) > overLapRatio );
+  //   } )
+
+  //   return check;
+  // }
+
+  const overLapCheck = (overLapRatio: number, curRect: dumRect | DOMRect) => {
+    const check = draggableElmsRef.current.some((otherElm, ind) => {
+      if (currentDraggingIndex.current != null && currentDraggingIndex.current === ind) {
         return false;
       }
+
       const otherRect = {
         left: otherElm.position.x,
         top: otherElm.position.y,
-        right : otherElm.position.x + otherElm.size,
+        right: otherElm.position.x + otherElm.size,
         bottom: otherElm.position.y + otherElm.size
+      };
+
+      // Calculate overlap bounds
+      const overLapLeft = Math.max(otherRect.left, curRect.left);
+      const overLapRight = Math.min(otherRect.right, curRect.right);
+      const overLapTop = Math.max(otherRect.top, curRect.top);
+      const overLapBottom = Math.min(otherRect.bottom, curRect.bottom);
+
+      const overLapW = Math.max(overLapRight - overLapLeft, 0);
+      const overLapH = Math.max(overLapBottom - overLapTop, 0);
+      const overLapArea = overLapW * overLapH;
+
+      const currArea = curRect.width * curRect.height;
+
+      if (overLapArea === 0) {
+        return false; // no overlap
       }
 
-      const overLapLeft = Math.max( otherRect.left, curRect.left )
-      const overLapRight = Math.min( otherRect.right, curRect.right )
-      const overLapTop = Math.max( otherRect.top, curRect.top )
-      const overLapBottom = Math.min( otherRect.bottom, curRect.bottom );
+      const overlapRatioValue = overLapArea / currArea;
 
-      const overLapW = overLapRight - overLapLeft;
-      const overLapH = overLapBottom - overLapTop;
-      const overLapArea = overLapW * overLapH;
-      const currArea = curRect.height * curRect.width;
-      return (currArea / overLapArea ) > overLapRatio;
-    } )
+      // If overlap ratio exceeds threshold, return true
+      return overlapRatioValue > overLapRatio;
+    });
 
     return check;
-  }
-
-//   const overLapCheck = (overLapRatio: number) => {
-//   if (currentDraggingIndex.current == null) return false;
-
-//   const currelmObj = draggableElmsRef.current[currentDraggingIndex.current];
-//   const curRect = {
-//     left: currelmObj.position.x,
-//     top: currelmObj.position.y,
-//     bottom: currelmObj.position.y + currelmObj.size,
-//     right: currelmObj.position.x + currelmObj.size,
-//   };
-
-//   return draggableElmsRef.current.some((otherElm, ind) => {
-//     // Skip comparing with itself
-//     if (ind === currentDraggingIndex.current) return false;
-
-//     const otherRect = {
-//       left: otherElm.position.x,
-//       top: otherElm.position.y,
-//       right: otherElm.position.x + otherElm.size,
-//       bottom: otherElm.position.y + otherElm.size,
-//     };
-
-//     const overLapLeft = Math.max(otherRect.left, curRect.left);
-//     const overLapRight = Math.min(otherRect.right, curRect.right);
-//     const overLapTop = Math.max(otherRect.top, curRect.top);
-//     const overLapBottom = Math.min(otherRect.bottom, curRect.bottom);
-
-//     const overLapW = overLapRight - overLapLeft;
-//     const overLapH = overLapBottom - overLapTop;
-
-//     if (overLapW > 0 && overLapH > 0) {
-//       const overLapArea = overLapW * overLapH;
-//       const currArea = currelmObj.size * currelmObj.size;
-
-//       // If overlap area >= allowed threshold — remove and return true
-//       if (overLapArea / currArea >= overLapRatio) {
-//         draggableElmsRef.current.splice(currentDraggingIndex.current, 1);
-//         return true;
-//       }
-//     }
-
-//     return false;
-//   });
-// };
+  };
 
 
-  const handleDragableMouseUp = ( ) => {
+  const handleDragableMouseUp = () => {
     if (
       !currentDraggableElm.current ||
       !canvaWrapperRef.current?.rect ||
@@ -263,9 +260,9 @@ const GameBoard: React.FC = () => {
       width: draggedElm.size,
       height: draggedElm.size,
     };
-    
 
-    if (  overLapCheck( overLapAreaAllowed, draggedRect ) ) {
+
+    if (overLapCheck(overLapAreaAllowed, draggedRect)) {
       // Remove dragged element if overlap detected
       draggableElmsRef.current.splice(draggedIndex, 1);
       setElmCount(c => c + 1);
@@ -341,8 +338,6 @@ const GameBoard: React.FC = () => {
     draggableElmsRef.current.splice(index, 1);
     setElmCount(c => c + 1); // trigger rerender
   };
-
-
 
   return (
     <StyleCmp>

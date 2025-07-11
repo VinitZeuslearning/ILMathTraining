@@ -7,23 +7,23 @@ type ShapesUrl = {
 
 const shapesUrl: ShapesUrl = {
     hexagon: {
-        url: "/pb_s5/hexagon_active.svg",
+        url: "/hexagon_active.png",
         size: 150
     },
     parallelogram: {
-        url: "/pb_s5/paralellogram_active.svg",
+        url: "/paralellogram_active.png",
         size: 120
     },
     rhombus: { 
-        url : "/pb_s5/rhombus-_active.svg",
+        url : "/rhombus-_active.png",
         size : 120,
     },
     square: { 
-        url : "/pb_s5/square_active.svg",
+        url : "/square_active.png",
         size : 100,
     },
     triangle: {
-        url: "/pb_s5/triangle-_active.svg",
+        url: "/triangle-_active.png",
         size : 120
     }
 };
