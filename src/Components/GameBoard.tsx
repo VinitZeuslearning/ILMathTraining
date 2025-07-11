@@ -162,6 +162,9 @@ const GameBoard: React.FC = () => {
 
   const overLapCheck = (  overLapRatio : number , curRect : dumRect | DOMRect ) => {
     const check = draggableElmsRef.current.some( ( otherElm , ind ) => {
+      if ( currentDraggingIndex.current != null && currentDraggingIndex.current == ind ) {
+        return false;
+      }
       const otherRect = {
         left: otherElm.position.x,
         top: otherElm.position.y,
@@ -174,11 +177,11 @@ const GameBoard: React.FC = () => {
       const overLapTop = Math.max( otherRect.top, curRect.top )
       const overLapBottom = Math.min( otherRect.bottom, curRect.bottom );
 
-      const overLapW = overLapLeft - overLapRight;
-      const overLapH = overLapTop - overLapBottom;
+      const overLapW = overLapRight - overLapLeft;
+      const overLapH = overLapBottom - overLapTop;
       const overLapArea = overLapW * overLapH;
       const currArea = curRect.height * curRect.width;
-      return currArea / overLapArea > overLapRatio;
+      return (currArea / overLapArea ) > overLapRatio;
     } )
 
     return check;
@@ -262,7 +265,7 @@ const GameBoard: React.FC = () => {
     };
     
 
-    if (  overLapCheck( overLapAreaAllowed, elmRect ) ) {
+    if (  overLapCheck( overLapAreaAllowed, draggedRect ) ) {
       // Remove dragged element if overlap detected
       draggableElmsRef.current.splice(draggedIndex, 1);
       setElmCount(c => c + 1);
