@@ -79,7 +79,7 @@ const GameBoard: React.FC = () => {
     };
 
     const handleUp = () => {
-      setSelectedShape(null);
+      // setSelectedShape(null);
       window.removeEventListener('mousemove', handleMove);
       window.removeEventListener('mouseup', handleUp);
     };
@@ -98,36 +98,7 @@ const GameBoard: React.FC = () => {
   };
 
   const handleCanvasMouseUp = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
-    if (!selectedShape) return;
-
-    const wrapperRect = canvaWrapperRef.current?.rect;
-    const x = e.clientX - (wrapperRect?.left || 0) - (selectedShape.size / 2);
-    const y = e.clientY - (wrapperRect?.top || 0) - (selectedShape.size / 2);
-
-    const currRect: dumRect = {
-      left: x,
-      top: y,
-      right: x + selectedShape.size,
-      bottom: y + selectedShape.size,
-      height: selectedShape.size,
-      width: selectedShape.size
-    }
-
-    if (overLapCheck(overLapAreaAllowed, currRect)) {
-      return;
-    }
-
-    const newElm: DraggableElmObj = {
-      id: `${selectedShape.name}_${Date.now()}`,
-      url: selectedShape.url,
-      shapeName: selectedShape.name,
-      position: { x, y },
-      size: selectedShape.size,
-      rotation: 0
-    };
-
-    draggableElmsRef.current.push(newElm);
-    setElmCount(count => count + 1);
+    addShape(e.clientX, e.clientY);
     setSelectedShape(null);
   };
 
@@ -229,6 +200,14 @@ const GameBoard: React.FC = () => {
     return check;
   };
 
+  const getClosestPoint = (x: number, y: number, spacing = 20) => {
+    return {
+      x: Math.round(x / spacing) * spacing,
+      y: Math.round(y / spacing) * spacing
+    };
+  };
+
+
 
   const handleDragableMouseUp = () => {
     if (
@@ -244,10 +223,14 @@ const GameBoard: React.FC = () => {
     const elmRect = currentDraggableElm.current.getBoundingClientRect();
     const parentRect = canvaWrapperRef.current.rect;
 
-    const newX = elmRect.left - parentRect.left;
-    const newY = elmRect.top - parentRect.top;
+    const X = elmRect.left - parentRect.left;
+    const Y = elmRect.top - parentRect.top;
+    let tmp = getClosestPoint( X, Y );
+    const newX = tmp.x;
+    const newY = tmp.y;
 
     // Update position in ref
+  
     draggedElm.position.x = newX;
     draggedElm.position.y = newY;
 
@@ -339,6 +322,47 @@ const GameBoard: React.FC = () => {
     setElmCount(c => c + 1); // trigger rerender
   };
 
+  const addShape = function (posX: number, posY: number) {
+    if (!selectedShape) return;
+
+    const wrapperRect = canvaWrapperRef.current?.rect;
+    const x = posX - (wrapperRect?.left || 0) - (selectedShape.size / 2);
+    const y = posY - (wrapperRect?.top || 0) - (selectedShape.size / 2);
+
+    const currRect: dumRect = {
+      left: x,
+      top: y,
+      right: x + selectedShape.size,
+      bottom: y + selectedShape.size,
+      height: selectedShape.size,
+      width: selectedShape.size
+    }
+
+    if (overLapCheck(overLapAreaAllowed, currRect)) {
+      return;
+    }
+
+    const newElm: DraggableElmObj = {
+      id: `${selectedShape.name}_${Date.now()}`,
+      url: selectedShape.url,
+      shapeName: selectedShape.name,
+      position: { x, y },
+      size: selectedShape.size,
+      rotation: 0
+    };
+
+    draggableElmsRef.current.push(newElm);
+    setElmCount(count => count + 1);
+  }
+
+  const handleDropShape = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+    if (selectedShape != null) {
+      console.log()
+    }
+    addShape(e.clientX, e.clientY);
+    setSelectedShape(null);
+  }
+
   return (
     <StyleCmp>
       <ShapeContainer onShapeMouseDown={handleShapeClick} />
@@ -353,6 +377,7 @@ const GameBoard: React.FC = () => {
           }
         }}
         onMouseUp={handleCanvasMouseUp}
+      // onClick={handleDropShape}
       >
         <CanvasBoard ref={canvasRef} />
         {draggableElmsRef.current.map((obj, index) => (

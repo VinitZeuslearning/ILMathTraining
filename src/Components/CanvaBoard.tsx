@@ -48,18 +48,37 @@ const CanvasBoard = forwardRef<CanvasBoardHandle>((props, ref) => {
   const shapesRef = useRef<Shape[]>([]);
   const drawing = [
     {
-      name : "drawHexagon"
+      name: "drawHexagon"
     }
   ]
-  
+
   useEffect(() => {
-    const rect = canvasRef.current?.getBoundingClientRect();
-    canvasRef.current?.getContext('2d')?.clearRect( 0, 0, rect?.height || 10, rect?.width || 0 )
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+
+    // Set canvas width & height based on DPR
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+
+    // Scale context to handle higher DPI
+    const ctx = canvas.getContext('2d');
+    if (ctx) {
+      ctx.scale(dpr, dpr);
+    }
+
+    // Clear and draw
+    ctx?.clearRect(0, 0, rect.width, rect.height);
+
     const draw = new Drawing(canvasRef);
-    draw.drawHexagon(200, 120, 40, 30);
-    draw.drawSquare(200 , 180, 50, 0);
-    draw.drawSquare(200 , 60, 50, 0);
-  })
+    draw.drawHexagon(360, 200, 80, 30);
+    draw.drawSquare(360, 310, 40, 0);
+    draw.drawSquare(360, 90, 40, 0);
+    draw.drawDotGrid();
+  }, []);
+
 
   return (
     <StyleDiv>
