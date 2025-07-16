@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState, type RefObject } from 'react';
 import styled from 'styled-components';
 import shapesUrl from '../shapesData';
 import type { ShapeName } from '../shapesData';
+import type { ShapeMeta } from '../shapesData';
 
 const Container = styled.div`
   grid-gap: 16px;
@@ -31,7 +32,7 @@ const ShapeGrid = styled.div`
 `;
 
 interface Props {
-  onShapeMouseDown: (shape: { name: string; url: string; size: number; rect: DOMRect | null } | null) => void;
+  onShapeMouseDown: (shape: { name: ShapeName ; rect: DOMRect | null } & ShapeMeta | null) => void;
 }
 
 
@@ -106,21 +107,27 @@ const ShapeContainer: React.FC<Props> = ({ onShapeMouseDown }) => {
   return (
     <Container>
       <ShapeGrid>
-        {Object.entries(shapesUrl).map(([name, { url, size }]) => (
-          <div className="imgContainer" key={name} ref={refObject.current[name as ShapeName].ref}>
-            <img
-              src={url}
-              className="svgImgs"
-              alt={name}
-              draggable={false}
-              onMouseDown={() => {
-                const shapeRef = refObject.current[name as ShapeName];
-                const rect = shapeRef.ref.current?.getBoundingClientRect() || null;
-                onShapeMouseDown({ name, url, size, rect });
-              }}
-            />
-          </div>
-        ))}
+        {(Object.entries(shapesUrl) as [ShapeName, ShapeMeta][])
+          .map(([name, { url, size, H, W }]) => (
+            <div
+              className="imgContainer"
+              key={name}
+              ref={refObject.current[name].ref}
+            >
+              <img
+                src={url}
+                className="svgImgs"
+                alt={name}
+                draggable={false}
+                onMouseDown={() => {
+                  const shapeRef = refObject.current[name];
+                  const rect = shapeRef.ref.current?.getBoundingClientRect() || null;
+                  onShapeMouseDown({ name, url, size, rect, H, W });
+                }}
+              />
+            </div>
+          ))
+        }
 
       </ShapeGrid>
 
